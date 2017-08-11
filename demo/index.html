@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>drag-resize demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../drag-resize.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        .content {
+          height: 100px;
+          width: 100px;
+          background-color: blue;
+        }
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Basic drag-resize demo</h3>
+      <demo-snippet>
+        <template>
+          <drag-resize><div class="content"></div></drag-resize>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>

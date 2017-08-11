@@ -1,0 +1,218 @@
+<link rel="import" href="../polymer/polymer-element.html">
+<link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../shadycss/apply-shim.html">
+
+<dom-module id="drag-resize">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        --drag-resize-edge-size: 5px;
+        --drag-resize-top-cursor: ns-resize;
+        --drag-resize-bottom-cursor: ns-resize;
+        --drag-resize-left-cursor: ew-resize;
+        --drag-resize-right-cursor: ew-resize;
+        --drag-resize-top-left-cursor: nw-resize;
+        --drag-resize-top-right-cursor: ne-resize;
+        --drag-resize-bottom-left-cursor: sw-resize;
+        --drag-resize-bottom-right-cursor: se-resize;
+      }
+      div, ::slotted(*) {
+        /*box-sizing: border-box;*/
+      }
+      #container {
+        position: relative;
+        border: var(--drag-resize-border);
+        @apply --resize-container;
+      }
+      .fit {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+      #top {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-top-cursor);
+      }
+      #right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-right-cursor);
+      }
+      #bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-bottom-cursor);
+      }
+      #left {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-left-cursor);
+      }
+
+      #topLeft {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: var(--drag-resize-edge-size);
+        height: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-top-left-cursor);
+      }
+      #topRight {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: var(--drag-resize-edge-size);
+        height: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-top-right-cursor);
+      }
+      #bottomLeft {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: var(--drag-resize-edge-size, 5px);
+        height: var(--drag-resize-edge-size, 5px);
+        cursor: var(--drag-resize-bottom-left-cursor);
+      }
+      #bottomRight {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: var(--drag-resize-edge-size);
+        height: var(--drag-resize-edge-size);
+        cursor: var(--drag-resize-bottom-right-cursor);
+      }
+    </style>
+    <div id="container">
+      <slot id="slot"></slot>
+      <div class="fit">
+        <div id="top" draggable hidden$="[[!top]]" on-track="_onTrack"></div>
+        <div id="right" draggable hidden$="[[!right]]" on-track="_onTrack"></div>
+        <div id="bottom" draggable hidden$="[[!bottom]]" on-track="_onTrack"></div>
+        <div id="left" draggable hidden$="[[!left]]" on-track="_onTrack"></div>
+        <div id="topLeft" draggable hidden$="[[!topLeft]]" on-track="_onTrack"></div>
+        <div id="topRight" draggable hidden$="[[!topRight]]" on-track="_onTrack"></div>
+        <div id="bottomLeft" draggable hidden$="[[!bottomLeft]]" on-track="_onTrack"></div>
+        <div id="bottomRight" draggable hidden$="[[!bottomRight]]" on-track="_onTrack"></div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `drag-resize`
+     * A touch friendly resizable container with resize events.
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class DragResize extends Polymer.GestureEventListeners(Polymer.Element) {
+      static get is() { return 'drag-resize'; }
+      static get properties() {
+        return {
+          /**
+           * Resize from top.
+           */
+          top: {
+            type: Boolean,
+            value: true
+          },
+          /**
+           * Resize from bottom.
+           */
+          bottom: {
+            type: Boolean,
+            value: true
+          },
+          /**
+           * Resize from left.
+           */
+          left: {
+            type: Boolean,
+            value: true
+          },
+          /**
+           * Resize from right.
+           */
+          right: {
+            type: Boolean,
+            value: true
+          },
+          /**
+           * Resize from top-left.
+           */
+          topLeft: {
+            type: Boolean,
+            computed: '_computeTopLeft(top, left)'
+          },
+          /**
+           * Resize from top-right.
+           */
+          topRight: {
+            type: Boolean,
+            computed: '_computeTopRight(top, right)'
+          },
+          /**
+           * Resize from bottom-left.
+           */
+          bottomLeft: {
+            type: Boolean,
+            computed: '_computeBottomLeft(bottom, left)'
+          },
+          /**
+           * Resize from bottom-right.
+           */
+          bottomRight: {
+            type: Boolean,
+            computed: '_computeBottomRight(bottom, right)'
+          },
+        };
+      }
+      _onTrack(e, detail) {
+        if (detail.state == 'start') {
+          console.log('resizing', e.target.id);
+        }
+
+        let x = (e.target.id.toLowerCase().includes('left')
+            || e.target.id.toLowerCase().includes('right'))
+          ? detail.ddx
+          : 0;
+        let y = (e.target.id.toLowerCase().includes('top')
+            || e.target.id.toLowerCase().includes('bottom'))
+          ? detail.ddy
+          : 0;
+
+        let box = this.$.slot.assignedNodes({flatten: true})[0];
+        box.style.height = (box.clientHeight + y) + 'px';
+        box.style.width = (box.clientWidth + x) + 'px';
+
+        if (detail.state == 'end') {
+          console.log(e.target.id, 'moved', [detail.dx, detail.dy]);
+        }
+      }
+
+      _computeTopLeft(top, left) { return top && left; }
+      _computeTopRight(top, right) { return top && right; }
+      _computeBottomLeft(bottom, left) { return bottom && left; }
+      _computeBottomRight(bottom, right) { return bottom && right; }
+    }
+
+    window.customElements.define(DragResize.is, DragResize);
+  </script>
+</dom-module>
