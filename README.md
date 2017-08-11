@@ -10,13 +10,11 @@ bower i -S jifalops/drag-resize        # Polymer 2.0 class based
 ```
 
 ## Usage
-Use it to contain the resizable content
-* easy to read
+* wrap the content you want to be resizable.
+* set which edges are resizable (defaults to `right bottom`)
+* listen for `on-resize` if desired.
 
 ## Demo
-<!-- Remove ONE or BOTH -->
-<small><i>Polymer bindings may not work in this readme demo.</i></small>
-See the full demo for examples using Polymer.
 
 <!--
 ```
@@ -25,6 +23,19 @@ See the full demo for examples using Polymer.
     <template is="dom-bind">
       <script src="../webcomponentsjs/webcomponents-lite.js"></script>
       <link rel="import" href="drag-resize.html">
+      <custom-style>
+        <style is="custom-style">
+          drag-resize {
+            --drag-resize-edge-size: 6px;
+            --drag-resize-corner-border: 2px solid black;
+          }
+          .content {
+            height: 100px;
+            width: 100px;
+            background-color: blue;
+          }
+        </style>
+      </custom-style>
       <next-code-block></next-code-block>
     </template>
   </dom-bind>
@@ -33,7 +44,7 @@ See the full demo for examples using Polymer.
 -->
 
 ```html
-<drag-resize></drag-resize>
+<drag-resize><div class="content"></div></drag-resize>
 ```
 
 Full demo:
