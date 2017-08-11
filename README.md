@@ -6,7 +6,7 @@ A touch friendly resizable container with resize events.
 ## Installation
 
 ```
-bower i -S drag-resize        # Polymer 2.0 class based
+bower i -S jifalops/drag-resize        # Polymer 2.0 class based
 ```
 
 ## Usage
