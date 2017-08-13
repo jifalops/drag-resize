@@ -163,6 +163,21 @@
         };
       }
 
+      ready() {
+        super.ready();
+        let box = this.$.slot.assignedNodes({flatten: true})[0];
+        this._origHeight = box.offsetHeight;
+        this._origWidth = box.offsetWidth;
+      }
+
+
+      reset() {
+        this.$.container.style.transform = 'translate(0, 0)';
+        let box = this.$.slot.assignedNodes({flatten: true})[0];
+        box.style.height = this._origHeight + 'px';
+        box.style.width = this._origWidth + 'px';
+      }
+
       _edgesChanged(edges) {
         if (typeof edges != 'string') return;
         this.top = edges.includes('top');
@@ -179,23 +194,20 @@
         let dx = Math.round(track.ddx || 0);
         let dy = Math.round(track.ddy || 0);
         let box = this.$.slot.assignedNodes({flatten: true})[0];
+        let translate = this._sidesToTranslate(box);
+
         // if (track.state == 'start') {
           // console.log('resizing', e.target.id, box);
         // }
 
-        if (this._prevTop === undefined) {
-          this._prevTop = box.offsetTop || 0;
-        }
-        if (this._prevLeft === undefined) {
-          this._prevLeft = box.offsetLeft || 0;
-        }
+        if (this._prevTop === undefined) this._prevTop = box.offsetTop || 0;
+        if (this._prevLeft === undefined) this._prevLeft = box.offsetLeft || 0;
 
         let top = this._prevTop;
         let left = this._prevLeft;
         let height = box.offsetHeight;
         let width = box.offsetWidth;
 
-        let translate = this._sidesToTranslate(box);
 
         if (e.target.id.includes('top')) {
           height += -dy || 0;
@@ -217,28 +229,13 @@
           else left += translate.right ? dx : 0;
         }
 
-        // let pos = this.absPos(this.$.container);
-        // console.log('before', box.offsetParent.offsetTop)
         this.$.container.style.transform = `translate(${left}px, ${top}px)`;
         box.style.height = height + 'px';
         box.style.width = width + 'px';
 
-
-        // Check if the container moved as expected (i.e. top and left requre translate)
-        // let newPos = this.absPos(this.$.container);
-        // console.log('after', box.offsetParent.offsetTop)
-
-
-
-        console.log('settings', top, left, height, width);
-        console.log('slot', box.offsetTop, box.offsetLeft, box.offsetHeight, box.offsetWidth, box.height, box.style.height);
-        console.log('cont', box.offsetParent.offsetTop, box.offsetParent.offsetLeft,
-          box.offsetParent.offsetHeight, box.offsetParent.offsetWidth);
-
-        if (track.state == 'end') {
-          console.log(e.target.id, 'moved', this.$.slot.assignedNodes({flatten: true}),
-          this.$.container.clientLeft);
-        }
+        // if (track.state == 'end') {
+        //   console.log(e.target.id, 'moved', track);
+        // }
 
         this._fire('resize', track);
         this._prevTop = top;
