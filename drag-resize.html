@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../shadycss/apply-shim.html">
 <!--
   CSS custom property | Description | Default
@@ -32,14 +33,12 @@
         --drag-resize-bottom-left-cursor: sw-resize;
         --drag-resize-bottom-right-cursor: se-resize;
       }
-      ::slotted() {
-        /*position: absolute;*/
-      }
       #container {
         position: relative;
+        box-sizing: border-box;
         @apply --drag-resize-container;
       }
-      .fit {
+      #fit {
         position: absolute;
         top: 0;
         left: 0;
@@ -124,10 +123,9 @@
         border-right: var(--drag-resize-corner-border);
       }
     </style>
-    <div id="container0">
     <div id="container">
       <slot id="slot"></slot>
-      <div class="fit">
+      <div id="fit">
         <div id="top" draggable hidden$="[[!top]]" on-track="_onTrack"></div>
         <div id="right" draggable hidden$="[[!right]]" on-track="_onTrack"></div>
         <div id="bottom" draggable hidden$="[[!bottom]]" on-track="_onTrack"></div>
@@ -137,7 +135,6 @@
         <div id="bottomLeft" draggable hidden$="[[!bottomLeft]]" on-track="_onTrack"></div>
         <div id="bottomRight" draggable hidden$="[[!bottomRight]]" on-track="_onTrack"></div>
       </div>
-    </div>
     </div>
   </template>
 
@@ -160,7 +157,7 @@
            */
           edges: {
             type: String,
-            value: 'bottom right',
+            value: 'bottom right top left',
             observer: '_edgesChanged'
           },
         };
@@ -179,42 +176,90 @@
       }
 
       _onTrack(e, track) {
-        // if (track.state == 'start') {
-        //   console.log('resizing', e.target.id);
-        // }
+        let dx = Math.round(track.ddx || 0);
+        let dy = Math.round(track.ddy || 0);
         let box = this.$.slot.assignedNodes({flatten: true})[0];
+        // if (track.state == 'start') {
+          // console.log('resizing', e.target.id, box);
+        // }
 
-        let top = box.clientTop;
-        let left = box.clientLeft;
-        let height = box.clientHeight;
-        let width = box.clientWidth;
+        if (this._prevTop === undefined) {
+          this._prevTop = box.offsetTop || 0;
+        }
+        if (this._prevLeft === undefined) {
+          this._prevLeft = box.offsetLeft || 0;
+        }
+
+        let top = this._prevTop;
+        let left = this._prevLeft;
+        let height = box.offsetHeight;
+        let width = box.offsetWidth;
+
+        let translate = this._sidesToTranslate(box);
 
         if (e.target.id.includes('top')) {
-          top += -track.ddy;
-          height += track.ddy;
+          height += -dy || 0;
+          if (height < 0) height = 0;
+          else top += translate.top ? dy : 0;
         } else if (e.target.id.includes('bottom')) {
-          height += track.ddy;
+          height += dy || 0;
+          if (height < 0) height = 0;
+          else top += translate.bottom ? -dy : 0;
         }
 
         if (e.target.id.toLowerCase().includes('left')) {
-          left += track.ddx;
-          width += -track.ddx;
+          width += -dx || 0;
+          if (width < 0) width = 0;
+          else left += translate.left ? dx : 0;
         } else if (e.target.id.toLowerCase().includes('right')) {
-          width += track.ddx;
+          width += dx || 0;
+          if (width < 0) width = 0;
+          else left += translate.right ? dx : 0;
         }
 
-        // box.style.transform = `translate(${left}, ${top})`;
-        // box.style.top = top;
-        // box.style.left = left;
+        // let pos = this.absPos(this.$.container);
+        // console.log('before', box.offsetParent.offsetTop)
+        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
         box.style.height = height + 'px';
         box.style.width = width + 'px';
 
-        // if (track.state == 'end') {
-        //   console.log(e.target.id, 'moved', [track.dx, track.dy]);
-        // }
+
+        // Check if the container moved as expected (i.e. top and left requre translate)
+        // let newPos = this.absPos(this.$.container);
+        // console.log('after', box.offsetParent.offsetTop)
+
+
+
+        console.log('settings', top, left, height, width);
+        console.log('slot', box.offsetTop, box.offsetLeft, box.offsetHeight, box.offsetWidth, box.height, box.style.height);
+        console.log('cont', box.offsetParent.offsetTop, box.offsetParent.offsetLeft,
+          box.offsetParent.offsetHeight, box.offsetParent.offsetWidth);
+
+        if (track.state == 'end') {
+          console.log(e.target.id, 'moved', this.$.slot.assignedNodes({flatten: true}),
+          this.$.container.clientLeft);
+        }
 
         this._fire('resize', track);
+        this._prevTop = top;
+        this._prevLeft = left;
       }
+
+      _sidesToTranslate(element) {
+        let top = element.offsetParent.offsetTop;
+        let left = element.offsetParent.offsetLeft;
+        element.style.height = (element.offsetHeight + 1) + 'px';
+        element.style.width = (element.offsetWidth + 1) + 'px';
+        let translateTop = element.offsetParent.offsetTop == top;
+        let translateLeft = element.offsetParent.offsetLeft == left;
+        return {
+          top: translateTop,
+          left:translateLeft,
+          bottom: !translateTop,
+          right: !translateLeft
+        };
+      }
+
       /** Copy the Polymer 1.x fire implementation. */
       _fire(name, data, options = {}) {
         options.detail = data;

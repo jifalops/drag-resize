@@ -15,6 +15,9 @@
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
+        drag-resize {
+          --drag-resize-corner-border: 2px solid black;
+        }
         .content {
           height: 100px;
           width: 100px;
@@ -47,7 +50,7 @@
       <demo-snippet>
         <template>
           <div style="text-align: right">
-            <drag-resize edges="bottom left"><div class="content"></div></drag-resize>
+            <drag-resize><div class="content"></div></drag-resize>
           </div>
         </template>
       </demo-snippet>
