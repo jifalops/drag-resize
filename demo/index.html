@@ -16,8 +16,11 @@
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
         drag-resize.border {
-          --drag-resize-edge-border: 1px solid #333;
+          --drag-resize-edge-border: 1px dashed #333;
           --drag-resize-corner-border: 1px solid #333;
+        }
+        drag-resize.corner {
+          --drag-resize-corner-color: #444;
         }
         .content {
           height: 100px;
@@ -27,7 +30,7 @@
         .container {
           height: 200px;
           width: 200px;
-          background-color: #eee;
+          background-color: #ddd;
           @apply --layout-vertical;
           @apply --layout-center;
         }
@@ -41,7 +44,7 @@
   </head>
   <body>
     <div class="vertical-section-container centered">
-      <h3>Basic drag-resize demo</h3>
+      <h3>With borders</h3>
       <demo-snippet>
         <template>
           <drag-resize class="border">
@@ -49,11 +52,11 @@
           </drag-resize>
         </template>
       </demo-snippet>
-      <h3>Without border, in a right-aligned div.</h3>
+      <h3>With corner color, in a right-aligned div.</h3>
       <demo-snippet>
         <template>
           <div style="text-align: right">
-            <drag-resize><div class="content"></div></drag-resize>
+            <drag-resize class="corner"><div class="content"></div></drag-resize>
           </div>
         </template>
       </demo-snippet>
@@ -61,7 +64,7 @@
       <demo-snippet>
         <template>
           <div class="container">
-            <drag-resize class="border" edges="bottom right">
+            <drag-resize class="corner" edges="bottom right">
               <div class="content"></div>
             </drag-resize>
           </div>
