@@ -15,18 +15,19 @@
 
     <custom-style>
       <style is="custom-style" include="demo-pages-shared-styles">
-        drag-resize {
-          --drag-resize-corner-border: 2px solid black;
+        drag-resize.border {
+          --drag-resize-edge-border: 1px solid #333;
+          --drag-resize-corner-border: 1px solid #333;
         }
         .content {
           height: 100px;
           width: 100px;
-          background-color: blue;
+          background-color: lightblue;
         }
         .container {
           height: 200px;
           width: 200px;
-          background-color: #ccc;
+          background-color: #eee;
           @apply --layout-vertical;
           @apply --layout-center;
         }
@@ -34,7 +35,6 @@
           @apply --layout-flex;
           @apply --layout-horizontal;
           @apply --layout-center;
-          --drag-resize-corner-border: 2px solid black;
         }
       </style>
     </custom-style>
@@ -44,9 +44,12 @@
       <h3>Basic drag-resize demo</h3>
       <demo-snippet>
         <template>
-          <drag-resize><div class="content"></div></drag-resize>
+          <drag-resize class="border">
+            <div class="content"></div>
+          </drag-resize>
         </template>
       </demo-snippet>
+      <h3>Without border, in a right-aligned div.</h3>
       <demo-snippet>
         <template>
           <div style="text-align: right">
@@ -54,10 +57,13 @@
           </div>
         </template>
       </demo-snippet>
+      <h3>Centered in a flexbox, only some edges resizable.</h3>
       <demo-snippet>
         <template>
           <div class="container">
-            <drag-resize class="padded"><div class="content"></div></drag-resize>
+            <drag-resize class="border" edges="bottom right">
+              <div class="content"></div>
+            </drag-resize>
           </div>
         </template>
       </demo-snippet>

@@ -1,11 +1,12 @@
 <link rel="import" href="../polymer/polymer-element.html">
 <link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
+<link rel="import" href="../polymer/lib/utils/flattened-nodes-observer.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../shadycss/apply-shim.html">
 <!--
   CSS custom property | Description | Default
   ------------------- | ----------- | -------
-  `--drag-resize-edge-size` | draggable edge size | 8px;
+  `--drag-resize-handle-size` | draggable edge/corner size | 8px;
   `--drag-resize-edge-border` | border for resizable edges | '';
   `--drag-resize-corner-border` | border for resizable corners | '';
   `--drag-resize-container` | Mixin applied to resize container | {};
@@ -23,7 +24,7 @@
     <style>
       :host {
         display: inline-block;
-        --drag-resize-edge-size: 8px;
+        --drag-resize-handle-size: 8px;
         --drag-resize-top-cursor: ns-resize;
         --drag-resize-bottom-cursor: ns-resize;
         --drag-resize-left-cursor: ew-resize;
@@ -51,7 +52,7 @@
         left: 0;
         right: 0;
         border-top: var(--drag-resize-edge-border);
-        height: var(--drag-resize-edge-size);
+        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-top-cursor);
       }
       #right {
@@ -60,7 +61,7 @@
         right: 0;
         bottom: 0;
         border-right: var(--drag-resize-edge-border);
-        width: var(--drag-resize-edge-size);
+        width: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-right-cursor);
       }
       #bottom {
@@ -69,7 +70,7 @@
         left: 0;
         right: 0;
         border-bottom: var(--drag-resize-edge-border);
-        height: var(--drag-resize-edge-size);
+        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-bottom-cursor);
       }
       #left {
@@ -78,53 +79,53 @@
         left: 0;
         bottom: 0;
         border-left: var(--drag-resize-edge-border);
-        width: var(--drag-resize-edge-size);
+        width: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-left-cursor);
       }
 
       #topLeft {
         position: absolute;
-        top: calc(var(--drag-resize-edge-size) / -2);
-        left: calc(var(--drag-resize-edge-size) / -2);
-        width: var(--drag-resize-edge-size);
-        height: var(--drag-resize-edge-size);
+        top: calc(var(--drag-resize-handle-size) / -2);
+        left: calc(var(--drag-resize-handle-size) / -2);
+        width: var(--drag-resize-handle-size);
+        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-top-left-cursor);
         border-top: var(--drag-resize-corner-border);
         border-left: var(--drag-resize-corner-border);
       }
       #topRight {
         position: absolute;
-        top: calc(var(--drag-resize-edge-size) / -2);
-        right: calc(var(--drag-resize-edge-size) / -2);
-        width: var(--drag-resize-edge-size);
-        height: var(--drag-resize-edge-size);
+        top: calc(var(--drag-resize-handle-size) / -2);
+        right: calc(var(--drag-resize-handle-size) / -2);
+        width: var(--drag-resize-handle-size);
+        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-top-right-cursor);
         border-top: var(--drag-resize-corner-border);
         border-right: var(--drag-resize-corner-border);
       }
       #bottomLeft {
         position: absolute;
-        bottom: calc(var(--drag-resize-edge-size) / -2);
-        left: calc(var(--drag-resize-edge-size) / -2);
-        width: var(--drag-resize-edge-size, 5px);
-        height: var(--drag-resize-edge-size, 5px);
+        bottom: calc(var(--drag-resize-handle-size) / -2);
+        left: calc(var(--drag-resize-handle-size) / -2);
+        width: var(--drag-resize-handle-size, 5px);
+        height: var(--drag-resize-handle-size, 5px);
         cursor: var(--drag-resize-bottom-left-cursor);
         border-bottom: var(--drag-resize-corner-border);
         border-left: var(--drag-resize-corner-border);
       }
       #bottomRight {
         position: absolute;
-        bottom: calc(var(--drag-resize-edge-size) / -2);
-        right: calc(var(--drag-resize-edge-size) / -2);
-        width: var(--drag-resize-edge-size);
-        height: var(--drag-resize-edge-size);
+        bottom: calc(var(--drag-resize-handle-size) / -2);
+        right: calc(var(--drag-resize-handle-size) / -2);
+        width: var(--drag-resize-handle-size);
+        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-bottom-right-cursor);
         border-bottom: var(--drag-resize-corner-border);
         border-right: var(--drag-resize-corner-border);
       }
     </style>
     <div id="container">
-      <slot id="slot"></slot>
+      <slot></slot>
       <div id="fit">
         <div id="top" draggable hidden$="[[!top]]" on-track="_onTrack"></div>
         <div id="right" draggable hidden$="[[!right]]" on-track="_onTrack"></div>
@@ -163,6 +164,24 @@
         };
       }
 
+      // connectedCallback() {
+      //   super.connectedCallback();
+      //   this._observer = new Polymer.FlattenedNodesObserver(function(info) {
+      //     // info is {addedNodes: [...], removedNodes: [...]}
+      //     console.log('nodes', info);
+      //     this.box = this._getContents;
+      //   });
+      // }
+      // disconnectedCallback() {
+      //   super.disconnectedCallback();
+      //   this._observer.disconnect();
+      // }
+
+      _getContents() {
+        return this.shadowRoot.querySelector('slot').assignedNodes({flatten:true})
+          .filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
+      }
+
       _edgesChanged(edges) {
         if (typeof edges != 'string') return;
         this.top = edges.includes('top');
@@ -176,26 +195,26 @@
       }
 
       _onTrack(e, track) {
+        this.box = this._getContents();
         let dx = Math.round(track.ddx || 0);
         let dy = Math.round(track.ddy || 0);
-        let box = this.$.slot.assignedNodes({flatten: true})[0];
         // if (track.state == 'start') {
-          // console.log('resizing', e.target.id, box);
+          // console.log('resizing', e.target.id, this.box);
         // }
 
         if (this._prevTop === undefined) {
-          this._prevTop = box.offsetTop || 0;
+          this._prevTop = this.box.offsetTop || 0;
         }
         if (this._prevLeft === undefined) {
-          this._prevLeft = box.offsetLeft || 0;
+          this._prevLeft = this.box.offsetLeft || 0;
         }
 
         let top = this._prevTop;
         let left = this._prevLeft;
-        let height = box.offsetHeight;
-        let width = box.offsetWidth;
+        let height = this.box.offsetHeight;
+        let width = this.box.offsetWidth;
 
-        let translate = this._sidesToTranslate(box);
+        let translate = this._sidesToTranslate(this.box);
 
         if (e.target.id.includes('top')) {
           height += -dy || 0;
@@ -217,27 +236,12 @@
           else left += translate.right ? dx : 0;
         }
 
-        // let pos = this.absPos(this.$.container);
-        // console.log('before', box.offsetParent.offsetTop)
-        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
-        box.style.height = height + 'px';
-        box.style.width = width + 'px';
-
-
-        // Check if the container moved as expected (i.e. top and left requre translate)
-        // let newPos = this.absPos(this.$.container);
-        // console.log('after', box.offsetParent.offsetTop)
-
-
-
-        console.log('settings', top, left, height, width);
-        console.log('slot', box.offsetTop, box.offsetLeft, box.offsetHeight, box.offsetWidth, box.height, box.style.height);
-        console.log('cont', box.offsetParent.offsetTop, box.offsetParent.offsetLeft,
-          box.offsetParent.offsetHeight, box.offsetParent.offsetWidth);
+        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
+        this.box.style.height = height + 'px';
+        this.box.style.width = width + 'px';
 
         if (track.state == 'end') {
-          console.log(e.target.id, 'moved', this.$.slot.assignedNodes({flatten: true}),
-          this.$.container.clientLeft);
+          console.log(e.target.id, 'moved', track, [this.box]);
         }
 
         this._fire('resize', track);
