@@ -10,9 +10,10 @@ bower i -S jifalops/drag-resize        # Polymer 2.0 class based
 ```
 
 ## Usage
-* wrap the content you want to be resizable.
-* set which edges are resizable (defaults to `right bottom`)
-* listen for `on-resize` if desired.
+* Set which directions are draggable and which edges are resizable.
+  All possibilities are enabled by default.
+* Optional: set edge/corner borders, mouse cursors, corner gradient color.
+* Optional: listen for `on-resize` or `on-drag` events.
 
 ## Demo
 
