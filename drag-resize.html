@@ -38,123 +38,119 @@
         --drag-resize-bottom-right-cursor: se-resize;
       }
 
-      :host([draggable]) #fit {
-        cursor: var(--drag-resize-move-cursor, inherit);
+      :host([draggable]) #overlay {
+        cursor: var(--drag-resize-move-cursor);
       }
       #container {
         position: relative;
         box-sizing: border-box;
         @apply --drag-resize-container;
-
       }
-      #fit {
+      #container div {
         position: absolute;
+      }
+      #overlay {
         top: 0;
         left: 0;
         bottom: 0;
         right: 0;
       }
-      #top {
-        position: absolute;
-        top: 0;
+
+      .top.edge, .bottom.edge {
+        height: var(--drag-resize-handle-size);
         left: 0;
         right: 0;
+      }
+      .left.edge, .right.edge {
+        width: var(--drag-resize-handle-size);
+        top: 0;
+        bottom: 0;
+      }
+
+      .corner {
+        width: calc(var(--drag-resize-handle-size) * 2);
+        height: calc(var(--drag-resize-handle-size) * 2);
+      }
+
+      .top.edge {
+        top: 0;
         border-top: var(--drag-resize-edge-border);
-        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-top-cursor);
       }
-      #right {
-        position: absolute;
-        top: 0;
-        right: 0;
+      .bottom.edge {
         bottom: 0;
-        border-right: var(--drag-resize-edge-border);
-        width: var(--drag-resize-handle-size);
-        cursor: var(--drag-resize-right-cursor);
-      }
-      #bottom {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
         border-bottom: var(--drag-resize-edge-border);
-        height: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-bottom-cursor);
       }
-      #left {
-        position: absolute;
-        top: 0;
+      .left.edge {
         left: 0;
-        bottom: 0;
         border-left: var(--drag-resize-edge-border);
-        width: var(--drag-resize-handle-size);
         cursor: var(--drag-resize-left-cursor);
       }
+      .right.edge {
+        right: 0;
+        border-right: var(--drag-resize-edge-border);
+        cursor: var(--drag-resize-right-cursor);
+      }
 
-      #topLeft {
-        position: absolute;
+
+      .top.corner {
         top: calc(var(--drag-resize-handle-size) / -2);
-        left: calc(var(--drag-resize-handle-size) / -2);
-        width: calc(var(--drag-resize-handle-size) * 2);
-        height: calc(var(--drag-resize-handle-size) * 2);
-        cursor: var(--drag-resize-top-left-cursor);
         border-top: var(--drag-resize-corner-border);
+      }
+      .bottom.corner {
+        bottom: calc(var(--drag-resize-handle-size) / -2);
+        border-bottom: var(--drag-resize-corner-border);
+      }
+      .left.corner {
+        left: calc(var(--drag-resize-handle-size) / -2);
         border-left: var(--drag-resize-corner-border);
+      }
+      .right.corner {
+        right: calc(var(--drag-resize-handle-size) / -2);
+        border-right: var(--drag-resize-corner-border);
+      }
+
+      .top.left {
+        cursor: var(--drag-resize-top-left-cursor);
         background-image: linear-gradient(to top left, rgba(0,0,0,0) 75%,
           var(--drag-resize-corner-color, rgba(0,0,0,0)));
-        z-index: 1;
       }
-      #topRight {
-        position: absolute;
-        top: calc(var(--drag-resize-handle-size) / -2);
-        right: calc(var(--drag-resize-handle-size) / -2);
-        width: calc(var(--drag-resize-handle-size) * 2);
-        height: calc(var(--drag-resize-handle-size) * 2);
+      .top.right {
         cursor: var(--drag-resize-top-right-cursor);
-        border-top: var(--drag-resize-corner-border);
-        border-right: var(--drag-resize-corner-border);
         background-image: linear-gradient(to top right, rgba(0,0,0,0) 75%,
           var(--drag-resize-corner-color, rgba(0,0,0,0)));
-        z-index: 1;
       }
-      #bottomLeft {
-        position: absolute;
-        bottom: calc(var(--drag-resize-handle-size) / -2);
-        left: calc(var(--drag-resize-handle-size) / -2);
-        width: calc(var(--drag-resize-handle-size) * 2);
-        height: calc(var(--drag-resize-handle-size) * 2);
+      .bottom.left {
         cursor: var(--drag-resize-bottom-left-cursor);
-        border-bottom: var(--drag-resize-corner-border);
-        border-left: var(--drag-resize-corner-border);
         background-image: linear-gradient(to bottom left, rgba(0,0,0,0) 75%,
           var(--drag-resize-corner-color, rgba(0,0,0,0)));
-        z-index: 1;
       }
-      #bottomRight {
-        position: absolute;
-        bottom: calc(var(--drag-resize-handle-size) / -2);
-        right: calc(var(--drag-resize-handle-size) / -2);
-        width: calc(var(--drag-resize-handle-size) * 2);
-        height: calc(var(--drag-resize-handle-size) * 2);
+      .bottom.right {
         cursor: var(--drag-resize-bottom-right-cursor);
-        border-bottom: var(--drag-resize-corner-border);
-        border-right: var(--drag-resize-corner-border);
         background-image: linear-gradient(to bottom right, rgba(0,0,0,0) 75%,
           var(--drag-resize-corner-color, rgba(0,0,0,0)));
-        z-index: 1;
       }
     </style>
     <div id="container">
-      <slot id="slot"></slot>
-      <div id="fit" draggable on-track="_onDrag">
-        <div id="top" hidden$="[[!resizeTop]]" on-track="_onResize"></div>
-        <div id="right" hidden$="[[!resizeRight]]" on-track="_onResize"></div>
-        <div id="bottom" hidden$="[[!resizeBottom]]" on-track="_onResize"></div>
-        <div id="left" hidden$="[[!resizeLeft]]" on-track="_onResize"></div>
-        <div id="topLeft" hidden$="[[!resizeTopLeft]]" on-track="_onResize"></div>
-        <div id="topRight" hidden$="[[!resizeTopRight]]" on-track="_onResize"></div>
-        <div id="bottomLeft" hidden$="[[!resizeBottomLeft]]" on-track="_onResize"></div>
-        <div id="bottomRight" hidden$="[[!resizeBottomRight]]" on-track="_onResize"></div>
+      <slot></slot>
+      <div id="overlay" draggable on-track="_onDrag">
+        <div draggable class="top edge" hidden$="[[!resizeTop]]"
+          on-track="_onResize"></div>
+        <div draggable class="right edge" hidden$="[[!resizeRight]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom edge" hidden$="[[!resizeBottom]]"
+          on-track="_onResize"></div>
+        <div draggable class="left edge" hidden$="[[!resizeLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="top left corner" hidden$="[[!resizeTopLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="top right corner" hidden$="[[!resizeTopRight]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom left corner" hidden$="[[!resizeBottomLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom right corner" hidden$="[[!resizeBottomRight]]"
+          on-track="_onResize"></div>
       </div>
     </div>
   </template>
@@ -162,7 +158,7 @@
   <script>
     /**
      * `drag-resize`
-     * A touch friendly resizable container with resize events.
+     * A touch friendly draggable and/or resizable container.
      *
      * @customElement
      * @polymer
@@ -187,10 +183,10 @@
            * Any combination of `top`, `bottom`, `left`, or `right`; or `none`.
            * A corner is enabled when both of its adjacent sides are enabled.
            */
-          edges: {
+          resize: {
             type: String,
             value: 'top bottom left right',
-            observer: '_edgesChanged',
+            observer: '_resizeChanged',
             reflectToAttribute: true
           },
 
@@ -217,10 +213,15 @@
 
       connectedCallback() {
         super.connectedCallback();
-        this._observer = new Polymer.FlattenedNodesObserver(this.$.slot,
+        let slot = this.shadowRoot.querySelector('slot');
+        this._observer = new Polymer.FlattenedNodesObserver(slot,
           info => {
-            this.box = this.$.slot.assignedNodes({flatten:true})
+            this.box = slot.assignedNodes({flatten:true})
               .filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
+            this.initialTop = this.box.offsetTop;
+            this.initialLeft = this.box.offsetLeft;
+            this.initialHeight = this.box.offsetHeight;
+            this.initialWidth = this.box.offsetWidth;
           });
       }
       disconnectedCallback() {
@@ -228,7 +229,17 @@
         this._observer.disconnect();
       }
 
-      _edgesChanged(edges) {
+      reset() {
+        if (!this.box) return;
+        this.box.offsetParent.style.transform =
+          `translate(${this.initialLeft}px, ${this.initialTop}px)`;
+        this.box.style.height = this.initialHeight + 'px';
+        this.box.style.width = this.initialWidth + 'px';
+        this.top = this.initialTop;
+        this.left = this.initialLeft;
+      }
+
+      _resizeChanged(edges) {
         if (typeof edges != 'string') return;
         this.resizeTop = edges.includes('top');
         this.resizeBottom = edges.includes('bottom');
@@ -253,7 +264,11 @@
       }
 
       _onResize(e, track) {
+        if (!this.resizable) return;
+
+        // Stop from dragging as well.
         e.stopPropagation();
+
         // Fix for half-pixel ddx/y when touching.
         const dx = Math.round(track.ddx || 0);
         const dy = Math.round(track.ddy || 0);
@@ -271,31 +286,36 @@
         let left = this.left;
         let height = this.box.offsetHeight;
         let width = this.box.offsetWidth;
+        let changed = false;
 
-        // If this line moved to the top, resizing fails.
+        // If this line is moved to the top, resizing fails.
         const translate = this._sidesToTranslate(this.box);
 
-        if (e.target.id.includes('top')) {
+        if (e.target.classList.contains('top')) {
           height += -dy;
           if (height < 0) height = 0;
           else if (translate.top) top += dy;
-        } else if (e.target.id.includes('bottom')) {
+          changed = true;
+        } else if (e.target.classList.contains('bottom')) {
           height += dy;
           if (height < 0) height = 0;
           else if (translate.bottom) top += -dy;
+          changed = true;
         }
 
-        if (e.target.id.toLowerCase().includes('left')) {
+        if (e.target.classList.contains('left')) {
           width += -dx;
           if (width < 0) width = 0;
           else if (translate.left) left += dx;
-        } else if (e.target.id.toLowerCase().includes('right')) {
+          changed = true;
+        } else if (e.target.classList.contains('right')) {
           width += dx;
           if (width < 0) width = 0;
           else if (translate.right) left += dx;
+          changed = true;
         }
 
-        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
+        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
         this.box.style.height = height + 'px';
         this.box.style.width = width + 'px';
 
@@ -307,17 +327,16 @@
         //   });
         // }
 
-        this._fire('resize', track);
-        this.top = top;
-        this.left = left;
+        if (changed) {
+          this._fire('resize', track);
+          this.top = top;
+          this.left = left;
+        }
       }
 
       _onDrag(e, track) {
         if (!this.draggable) return;
 
-        // Fix for half-pixel ddx/y when touching.
-        // const dx = Math.round(track.ddx || 0);
-        // const dy = Math.round(track.ddy || 0);
         const dx = track.dx || 0;
         const dy = track.dy || 0;
 
@@ -336,20 +355,25 @@
         // Values to change
         let top = this._dragStartTop;
         let left = this._dragStartLeft;
+        let changed = false;
 
         if ((this.dragUp && dy <= 0) || this.dragDown && dy >= 0) {
           top += dy;
+          changed = true;
         }
         if ((this.dragLeft && dx <= 0) || this.dragRight && dx >= 0) {
           left += dx;
+          changed = true;
         }
 
-        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
+        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
 
         // console.log(top, left, dx, dy)
-        this._fire('drag', track);
-        this.top = top;
-        this.left = left;
+        if (changed) {
+          this._fire('drag', track);
+          this.top = top;
+          this.left = left;
+        }
       }
 
       _sidesToTranslate(element) {

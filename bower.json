@@ -1,6 +1,6 @@
 {
   "name": "drag-resize",
-  "description": "A touch friendly resizable container with resize events.",
+  "description": "A touch friendly draggable and/or resizable container.",
   "main": "drag-resize.html",
   "authors": [
     "Jacob Phillips (https://github.com/jifalops) <jifalops@gmail.com>"

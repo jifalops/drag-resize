@@ -1,7 +1,7 @@
 [![Published on webcomponents.org](https://img.shields.io/badge/webcomponents.org-published-blue.svg)](https://www.webcomponents.org/element/jifalops/drag-resize)
 
 # drag-resize
-A touch friendly resizable container with resize events.
+A touch friendly draggable and/or resizable container.
 
 ## Installation
 
@@ -23,20 +23,29 @@ bower i -S jifalops/drag-resize        # Polymer 2.0 class based
     <template is="dom-bind">
       <script src="../webcomponentsjs/webcomponents-lite.js"></script>
       <link rel="import" href="drag-resize.html">
-      <custom-style>
-        <style is="custom-style">
-          drag-resize {
-            --drag-resize-edge-size: 6px;
-            --drag-resize-corner-border: 2px solid black;
-          }
-          .content {
-            height: 100px;
-            width: 100px;
-            background-color: blue;
-          }
-        </style>
-      </custom-style>
       <next-code-block></next-code-block>
+      <script>
+        var dynamic = document.getElementById('dynamic');
+        var drag = document.getElementById('drag');
+        var resize = document.getElementById('resize');
+        var edge = document.getElementById('edge');
+        var corner = document.getElementById('corner');
+        var color = document.getElementById('color');
+        var handle = document.getElementById('handle');
+        function update() {
+          dynamic.drag = drag.value;
+          dynamic.resize = resize.value;
+          dynamic.updateStyles({
+            '--drag-resize-edge-border': edge.value,
+            '--drag-resize-corner-border': corner.value,
+            '--drag-resize-corner-color': color.value,
+            '--drag-resize-handle-size': handle.value,
+          });
+        }
+        function reset() {
+          dynamic.reset();
+        }
+      </script>
     </template>
   </dom-bind>
 </custom-element-demo>
@@ -44,7 +53,17 @@ bower i -S jifalops/drag-resize        # Polymer 2.0 class based
 -->
 
 ```html
-<drag-resize><div class="content"></div></drag-resize>
+<drag-resize id="dynamic">
+  <div style="height:100px; width:100px; background-color:lightblue;"></div>
+</drag-resize><br/>
+<input id="drag" value="up down left right"/> Drag<br/>
+<input id="resize" value="top bottom left right"/> Resize<br/>
+<input id="edge" value="1px dashed #333"/> Edge border<br/>
+<input id="corner" value="1px solid #333"/> Corner border<br/>
+<input id="color" value="#666"/> Corner color<br/>
+<input id="handle" value="8px"/> Resize handle height/width<br/>
+<button onclick="reset()">Reset size/pos</button> &nbsp;
+<button onclick="update()">Update</button>
 ```
 
 Full demo:
