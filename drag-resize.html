@@ -7,10 +7,11 @@
   CSS custom property | Description | Default
   ------------------- | ----------- | -------
   `--drag-resize-handle-size` | draggable edge/corner size | 8px;
-  `--drag-resize-corner-color` | color for corner gradient | '';
+  `--drag-resize-corner-color` | color for resizable corner | '';
   `--drag-resize-edge-border` | border for resizable edges | '';
   `--drag-resize-corner-border` | border for resizable corners | '';
   `--drag-resize-container` | Mixin applied to resize container | {};
+  `--drag-resize-move-cursor` | move cursor | move;
   `--drag-resize-top-cursor` | top cursor | ns-resize;
   `--drag-resize-bottom-cursor` | bottom cursor | ns-resize;
   `--drag-resize-left-cursor` | left cursor | ew-resize;
@@ -26,6 +27,7 @@
       :host {
         display: inline-block;
         --drag-resize-handle-size: 8px;
+        --drag-resize-move-cursor: move;
         --drag-resize-top-cursor: ns-resize;
         --drag-resize-bottom-cursor: ns-resize;
         --drag-resize-left-cursor: ew-resize;
@@ -35,10 +37,15 @@
         --drag-resize-bottom-left-cursor: sw-resize;
         --drag-resize-bottom-right-cursor: se-resize;
       }
+
+      :host([draggable]) #fit {
+        cursor: var(--drag-resize-move-cursor, inherit);
+      }
       #container {
         position: relative;
         box-sizing: border-box;
         @apply --drag-resize-container;
+
       }
       #fit {
         position: absolute;
@@ -138,16 +145,16 @@
       }
     </style>
     <div id="container">
-      <slot></slot>
-      <div id="fit">
-        <div id="top" hidden$="[[!top]]" on-track="_onTrack"></div>
-        <div id="right" hidden$="[[!right]]" on-track="_onTrack"></div>
-        <div id="bottom" hidden$="[[!bottom]]" on-track="_onTrack"></div>
-        <div id="left" hidden$="[[!left]]" on-track="_onTrack"></div>
-        <div id="topLeft" hidden$="[[!topLeft]]" on-track="_onTrack"></div>
-        <div id="topRight" hidden$="[[!topRight]]" on-track="_onTrack"></div>
-        <div id="bottomLeft" hidden$="[[!bottomLeft]]" on-track="_onTrack"></div>
-        <div id="bottomRight" hidden$="[[!bottomRight]]" on-track="_onTrack"></div>
+      <slot id="slot"></slot>
+      <div id="fit" draggable on-track="_onDrag">
+        <div id="top" hidden$="[[!resizeTop]]" on-track="_onResize"></div>
+        <div id="right" hidden$="[[!resizeRight]]" on-track="_onResize"></div>
+        <div id="bottom" hidden$="[[!resizeBottom]]" on-track="_onResize"></div>
+        <div id="left" hidden$="[[!resizeLeft]]" on-track="_onResize"></div>
+        <div id="topLeft" hidden$="[[!resizeTopLeft]]" on-track="_onResize"></div>
+        <div id="topRight" hidden$="[[!resizeTopRight]]" on-track="_onResize"></div>
+        <div id="bottomLeft" hidden$="[[!resizeBottomLeft]]" on-track="_onResize"></div>
+        <div id="bottomRight" hidden$="[[!resizeBottomRight]]" on-track="_onResize"></div>
       </div>
     </div>
   </template>
@@ -166,104 +173,183 @@
       static get properties() {
         return {
           /**
+           * Which directions the container can be dragged.
+           * Any combination of `up`, `down`, `left`, or `right`; or `none`.
+           */
+          drag: {
+            type: String,
+            value: 'up down left right',
+            observer: '_dragChanged',
+            reflectToAttribute: true
+          },
+          /**
            * Which edges allow resize.
-           * Any combination of `top`, `left`, `bottom`, `right`.
+           * Any combination of `top`, `bottom`, `left`, or `right`; or `none`.
+           * A corner is enabled when both of its adjacent sides are enabled.
            */
           edges: {
             type: String,
-            value: 'bottom right top left',
-            observer: '_edgesChanged'
+            value: 'top bottom left right',
+            observer: '_edgesChanged',
+            reflectToAttribute: true
+          },
+
+          /**
+           * True if draggable in at least one direction.
+           */
+          draggable: {
+            type: Boolean,
+            value: false,
+            readOnly: true,
+            reflectToAttribute: true
+          },
+          /**
+           * True if resizable on at least one edge.
+           */
+          resizable: {
+            type: Boolean,
+            value: false,
+            readOnly: true,
+            reflectToAttribute: true
           },
         };
       }
 
-      // connectedCallback() {
-      //   super.connectedCallback();
-      //   this._observer = new Polymer.FlattenedNodesObserver(function(info) {
-      //     // info is {addedNodes: [...], removedNodes: [...]}
-      //     console.log('nodes', info);
-      //     this.box = this._getContents;
-      //   });
-      // }
-      // disconnectedCallback() {
-      //   super.disconnectedCallback();
-      //   this._observer.disconnect();
-      // }
-
-      _getContents() {
-        return this.shadowRoot.querySelector('slot').assignedNodes({flatten:true})
-          .filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
+      connectedCallback() {
+        super.connectedCallback();
+        this._observer = new Polymer.FlattenedNodesObserver(this.$.slot,
+          info => {
+            this.box = this.$.slot.assignedNodes({flatten:true})
+              .filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
+          });
+      }
+      disconnectedCallback() {
+        super.disconnectedCallback();
+        this._observer.disconnect();
       }
 
       _edgesChanged(edges) {
         if (typeof edges != 'string') return;
-        this.top = edges.includes('top');
-        this.bottom = edges.includes('bottom');
-        this.left = edges.includes('left');
-        this.right = edges.includes('right');
-        this.topLeft = this.top && this.left;
-        this.topRight = this.top && this.right;
-        this.bottomLeft = this.bottom && this.left;
-        this.bottomRight = this.bottom && this.right;
+        this.resizeTop = edges.includes('top');
+        this.resizeBottom = edges.includes('bottom');
+        this.resizeLeft = edges.includes('left');
+        this.resizeRight = edges.includes('right');
+        this.resizeTopLeft = this.resizeTop && this.resizeLeft;
+        this.resizeTopRight = this.resizeTop && this.resizeRight;
+        this.resizeBottomLeft = this.resizeBottom && this.resizeLeft;
+        this.resizeBottomRight = this.resizeBottom && this.resizeRight;
+        this._setProperty('resizable', this.resizeTop || this.resizeBottom
+          || this.resizeLeft || this.resizeRight);
       }
 
-      _onTrack(e, track) {
-        this.box = this._getContents();
-        let dx = Math.round(track.ddx || 0);
-        let dy = Math.round(track.ddy || 0);
+      _dragChanged(drag) {
+        if (typeof drag != 'string') return;
+        this.dragUp = drag.includes('up');
+        this.dragDown = drag.includes('down');
+        this.dragLeft = drag.includes('left');
+        this.dragRight = drag.includes('right');
+        this._setProperty('draggable', this.dragUp || this.dragDown
+          || this.dragLeft || this.dragRight);
+      }
+
+      _onResize(e, track) {
+        e.stopPropagation();
+        // Fix for half-pixel ddx/y when touching.
+        const dx = Math.round(track.ddx || 0);
+        const dy = Math.round(track.ddy || 0);
+
         // if (track.state == 'start') {
           // console.log('resizing', e.target.id, this.box);
         // }
 
-        if (this._prevTop === undefined) {
-          this._prevTop = this.box.offsetTop || 0;
-        }
-        if (this._prevLeft === undefined) {
-          this._prevLeft = this.box.offsetLeft || 0;
-        }
+        // Remember top-left point between runs.
+        if (this.top === undefined) this.top = this.box.offsetTop || 0;
+        if (this.left === undefined) this.left = this.box.offsetLeft || 0;
 
-        let top = this._prevTop;
-        let left = this._prevLeft;
+        // Values to change
+        let top = this.top;
+        let left = this.left;
         let height = this.box.offsetHeight;
         let width = this.box.offsetWidth;
 
-        let translate = this._sidesToTranslate(this.box);
+        // If this line moved to the top, resizing fails.
+        const translate = this._sidesToTranslate(this.box);
 
         if (e.target.id.includes('top')) {
-          height += -dy || 0;
+          height += -dy;
           if (height < 0) height = 0;
-          else top += translate.top ? dy : 0;
+          else if (translate.top) top += dy;
         } else if (e.target.id.includes('bottom')) {
-          height += dy || 0;
+          height += dy;
           if (height < 0) height = 0;
-          else top += translate.bottom ? -dy : 0;
+          else if (translate.bottom) top += -dy;
         }
 
         if (e.target.id.toLowerCase().includes('left')) {
-          width += -dx || 0;
+          width += -dx;
           if (width < 0) width = 0;
-          else left += translate.left ? dx : 0;
+          else if (translate.left) left += dx;
         } else if (e.target.id.toLowerCase().includes('right')) {
-          width += dx || 0;
+          width += dx;
           if (width < 0) width = 0;
-          else left += translate.right ? dx : 0;
+          else if (translate.right) left += dx;
         }
 
-        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
+        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
         this.box.style.height = height + 'px';
         this.box.style.width = width + 'px';
 
-        if (track.state == 'end') {
-          console.log(e.target.id, 'moved', track, {
-            transform: this.box.offsetParent.style.transform,
-            height: this.box.style.height,
-            width: this.box.style.width,
-          });
-        }
+        // if (track.state == 'end') {
+        //   console.log(e.target.id, 'moved', track, {
+        //     transform: this.box.offsetParent.style.transform,
+        //     height: this.box.style.height,
+        //     width: this.box.style.width,
+        //   });
+        // }
 
         this._fire('resize', track);
-        this._prevTop = top;
-        this._prevLeft = left;
+        this.top = top;
+        this.left = left;
+      }
+
+      _onDrag(e, track) {
+        if (!this.draggable) return;
+
+        // Fix for half-pixel ddx/y when touching.
+        // const dx = Math.round(track.ddx || 0);
+        // const dy = Math.round(track.ddy || 0);
+        const dx = track.dx || 0;
+        const dy = track.dy || 0;
+
+        // Remember top-left point between runs.
+        if (this.top === undefined) this.top = this.box.offsetTop || 0;
+        if (this.left === undefined) this.left = this.box.offsetLeft || 0;
+
+        if (track.state == 'start') {
+          // console.log('dragging...');
+          this._dragStartTop = this.top;
+          this._dragStartLeft = this.left;
+        }
+
+
+
+        // Values to change
+        let top = this._dragStartTop;
+        let left = this._dragStartLeft;
+
+        if ((this.dragUp && dy <= 0) || this.dragDown && dy >= 0) {
+          top += dy;
+        }
+        if ((this.dragLeft && dx <= 0) || this.dragRight && dx >= 0) {
+          left += dx;
+        }
+
+        this.$.container.style.transform = `translate(${left}px, ${top}px)`;
+
+        // console.log(top, left, dx, dy)
+        this._fire('drag', track);
+        this.top = top;
+        this.left = left;
       }
 
       _sidesToTranslate(element) {
@@ -290,6 +376,12 @@
       /**
        * Triggered when the element is resized.
        * @event resize
+       * @param {track} object The on-track event detail.
+       */
+
+      /**
+       * Triggered when the element is dragged.
+       * @event drag
        * @param {track} object The on-track event detail.
        */
     }
