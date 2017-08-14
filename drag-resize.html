@@ -6,20 +6,20 @@
 <!--
   CSS custom property | Description | Default
   ------------------- | ----------- | -------
-  `--drag-resize-handle-size` | draggable edge/corner size | 8px;
-  `--drag-resize-corner-color` | color for resizable corner | '';
-  `--drag-resize-edge-border` | border for resizable edges | '';
-  `--drag-resize-corner-border` | border for resizable corners | '';
-  `--drag-resize-container` | Mixin applied to resize container | {};
-  `--drag-resize-move-cursor` | move cursor | move;
-  `--drag-resize-top-cursor` | top cursor | ns-resize;
-  `--drag-resize-bottom-cursor` | bottom cursor | ns-resize;
-  `--drag-resize-left-cursor` | left cursor | ew-resize;
-  `--drag-resize-right-cursor` | right cursor | ew-resize;
-  `--drag-resize-top-left-cursor` | top-left cursor | nw-resize;
-  `--drag-resize-top-right-cursor` | top-right cursor | ne-resize;
-  `--drag-resize-bottom-left-cursor` | bottom-left cursor | sw-resize;
-  `--drag-resize-bottom-right-cursor` | bottom-right cursor | se-resize;
+  `--drag-resize-handle-size` | draggable edge size | 8px
+  `--drag-resize-corner-color` | color for resizable corner | ''
+  `--drag-resize-edge-border` | border for resizable edges | ''
+  `--drag-resize-corner-border` | border for resizable corners | ''
+  `--drag-resize-container` | Mixin applied to resize container | {}
+  `--drag-resize-move-cursor` | move cursor | move
+  `--drag-resize-top-cursor` | top cursor | ns-resize
+  `--drag-resize-bottom-cursor` | bottom cursor | ns-resize
+  `--drag-resize-left-cursor` | left cursor | ew-resize
+  `--drag-resize-right-cursor` | right cursor | ew-resize
+  `--drag-resize-top-left-cursor` | top-left cursor | nw-resize
+  `--drag-resize-top-right-cursor` | top-right cursor | ne-resize
+  `--drag-resize-bottom-left-cursor` | bottom-left cursor | sw-resize
+  `--drag-resize-bottom-right-cursor` | bottom-right cursor | se-resize
 -->
 <dom-module id="drag-resize">
   <template strip-whitespace>
@@ -191,6 +191,14 @@
           },
 
           /**
+           * Allow only proportional resizes and up to 8-way dragging.
+           */
+          constrain: {
+            type: Boolean,
+            value: false
+          },
+
+          /**
            * True if draggable in at least one direction.
            */
           draggable: {
@@ -229,6 +237,10 @@
         this._observer.disconnect();
       }
 
+      /**
+       * Reset top, left, height, and width to what the values were
+       * when children were last added.
+       */
       reset() {
         if (!this.box) return;
         this.box.offsetParent.style.transform =
@@ -269,23 +281,26 @@
         // Stop from dragging as well.
         e.stopPropagation();
 
-        // Fix for half-pixel ddx/y when touching.
-        const dx = Math.round(track.ddx || 0);
-        const dy = Math.round(track.ddy || 0);
-
-        // if (track.state == 'start') {
-          // console.log('resizing', e.target.id, this.box);
-        // }
+        const dx = track.dx || 0;
+        const dy = track.dy || 0;
 
         // Remember top-left point between runs.
         if (this.top === undefined) this.top = this.box.offsetTop || 0;
         if (this.left === undefined) this.left = this.box.offsetLeft || 0;
 
+        if (track.state == 'start') {
+          // console.log('resizing', e.target.id, this.box);
+          this._resizeStartTop = this.top;
+          this._resizeStartLeft = this.left;
+          this._resizeStartHeight = this.box.offsetHeight || 0;
+          this._resizeStartWidth = this.box.offsetWidth || 0;
+        }
+
         // Values to change
-        let top = this.top;
-        let left = this.left;
-        let height = this.box.offsetHeight;
-        let width = this.box.offsetWidth;
+        let top = this._resizeStartTop;
+        let left = this._resizeStartLeft;
+        let height = this._resizeStartHeight;
+        let width = this._resizeStartWidth;
         let changed = false;
 
         // If this line is moved to the top, resizing fails.
@@ -313,6 +328,11 @@
           if (width < 0) width = 0;
           else if (translate.right) left += dx;
           changed = true;
+        }
+
+        if (this.constrain && changed) {
+          top = left = Math.abs(top) > Math.abs(left) ? top : left;
+          height = width = Math.max(height, width);
         }
 
         this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
