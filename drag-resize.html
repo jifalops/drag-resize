@@ -294,13 +294,14 @@
           this._resizeStartLeft = this.left;
           this._resizeStartHeight = this.box.offsetHeight || 0;
           this._resizeStartWidth = this.box.offsetWidth || 0;
+          this._resizeRatio = (this._resizeStartHeight / this._resizeStartWidth) || 0;
         }
 
         // Values to change
-        let top = this._resizeStartTop;
-        let left = this._resizeStartLeft;
-        let height = this._resizeStartHeight;
-        let width = this._resizeStartWidth;
+        let top = 0;
+        let left = 0;
+        let height = 0;
+        let width = 0;
         let changed = false;
 
         // If this line is moved to the top, resizing fails.
@@ -308,32 +309,43 @@
 
         if (e.target.classList.contains('top')) {
           height += -dy;
-          if (height < 0) height = 0;
-          else if (translate.top) top += dy;
+          if (translate.top) top += dy;
           changed = true;
         } else if (e.target.classList.contains('bottom')) {
           height += dy;
-          if (height < 0) height = 0;
-          else if (translate.bottom) top += -dy;
+          if (translate.bottom) top += -dy;
           changed = true;
         }
 
         if (e.target.classList.contains('left')) {
           width += -dx;
-          if (width < 0) width = 0;
-          else if (translate.left) left += dx;
+          if (translate.left) left += dx;
           changed = true;
         } else if (e.target.classList.contains('right')) {
           width += dx;
-          if (width < 0) width = 0;
-          else if (translate.right) left += dx;
+          if (translate.right) left += dx;
           changed = true;
         }
 
-        if (this.constrain && changed) {
+        if (this.constrain) {
           top = left = Math.abs(top) > Math.abs(left) ? top : left;
           height = width = Math.max(height, width);
         }
+
+        height += this._resizeStartHeight;
+        width += this._resizeStartWidth;
+
+        if (height < 0) {
+          height = 0;
+          if (top > 0) top -= Math.round(track.ddy || 0);
+        }
+        if (width < 0) {
+          width = 0;
+          if (left > 0) left -= Math.round(track.ddx || 0);
+        }
+
+        top += this._resizeStartTop;
+        left += this._resizeStartLeft;
 
         this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
         this.box.style.height = height + 'px';
@@ -404,8 +416,8 @@
         return {
           top: element.offsetParent.offsetTop == top,
           left: element.offsetParent.offsetLeft == left,
-          bottom: element.offsetParent.offsetTop == top - 2,
-          right: element.offsetParent.offsetLeft == left - 2,
+          bottom: element.offsetParent.offsetTop == top - 2 && element.offsetHeight >= 2,
+          right: element.offsetParent.offsetLeft == left - 2 && element.offsetWidth >= 2,
         };
       }
 
