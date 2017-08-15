@@ -44,7 +44,7 @@
   </head>
   <body>
     <div class="vertical-section-container centered">
-      <h3>Dynamic</h3>
+      <h3>Interactive</h3>
       <demo-snippet>
         <template>
           <drag-resize id="dynamic">
@@ -54,10 +54,10 @@
           <input id="resize" value="top bottom left right"/> Resize<br/>
           <input id="edge" value="1px dashed #333"/> Edge border<br/>
           <input id="corner" value="1px solid #333"/> Corner border<br/>
-          <input id="color" value="#666"/> Corner color<br/>
+          <input id="color" value="#f00"/> Corner color<br/>
           <input id="handle" value="8px"/> Resize handle height/width<br/>
           <button onclick="reset()">Reset size/pos</button> &nbsp;
-          <button onclick="update()">Update</button>
+          <!--<button onclick="update()">Update</button>-->
           <script>
             var dynamic = document.getElementById('dynamic');
             var drag = document.getElementById('drag');
@@ -79,6 +79,7 @@
             function reset() {
               dynamic.reset();
             }
+            setInterval(update, 1000);
           </script>
         </template>
       </demo-snippet>
