@@ -208,6 +208,13 @@
             readOnly: true,
             reflectToAttribute: true
           },
+          /**
+           * Allow only proportional resizes and up to 8-way dragging.
+           */
+          constrain: {
+            type: Boolean,
+            value: false
+          },
         };
       }
 
@@ -269,50 +276,59 @@
         // Stop from dragging as well.
         e.stopPropagation();
 
-        // Fix for half-pixel ddx/y when touching.
-        const dx = Math.round(track.ddx || 0);
-        const dy = Math.round(track.ddy || 0);
+        let dx = track.dx || 0;
+        let dy = track.dy || 0;
 
-        // if (track.state == 'start') {
-          // console.log('resizing', e.target.id, this.box);
-        // }
+        if (this.constrain) {
+          dx = Math.abs(dx) > Math.abs(dy) ? dx : dy;
+          dy = dx;
+        }
+
+        const minHeight = this.box.offsetParent.offsetHeight - this.box.offsetHeight;
+        const minWidth = this.box.offsetParent.offsetWidth - this.box.offsetWidth;
+
 
         // Remember top-left point between runs.
         if (this.top === undefined) this.top = this.box.offsetTop || 0;
         if (this.left === undefined) this.left = this.box.offsetLeft || 0;
 
+        if (track.state == 'start') {
+          // console.log('resizing', e.target.id, this.box);
+          this._resizeStartTop = this.top;
+          this._resizeStartLeft = this.left;
+          this._resizeStartHeight = this.box.offsetHeight || 0;
+          this._resizeStartWidth = this.box.offsetWidth || 0;
+          console.log('min', minHeight, minWidth, [this.$.container], [this.box]);
+        }
+
+
         // Values to change
-        let top = this.top;
-        let left = this.left;
-        let height = this.box.offsetHeight;
-        let width = this.box.offsetWidth;
-        let changed = false;
+        let top = this._resizeStartTop;
+        let left = this._resizeStartLeft;
+        let height = this._resizeStartHeight;
+        let width = this._resizeStartWidth;
 
         // If this line is moved to the top, resizing fails.
-        const translate = this._sidesToTranslate(this.box);
+        const translate = this._sidesToTranslate(this.box, track.ddx, track.ddy);
 
         if (e.target.classList.contains('top')) {
           height += -dy;
-          if (height < 0) height = 0;
+          if (height < minHeight) height = minHeight;
           else if (translate.top) top += dy;
-          changed = true;
         } else if (e.target.classList.contains('bottom')) {
           height += dy;
-          if (height < 0) height = 0;
+          if (height < minHeight) height = minHeight;
           else if (translate.bottom) top += -dy;
-          changed = true;
         }
 
         if (e.target.classList.contains('left')) {
           width += -dx;
-          if (width < 0) width = 0;
+          if (width < minWidth) width = minWidth;
           else if (translate.left) left += dx;
-          changed = true;
         } else if (e.target.classList.contains('right')) {
           width += dx;
-          if (width < 0) width = 0;
+          if (width < minWidth) width = minWidth;
           else if (translate.right) left += dx;
-          changed = true;
         }
 
         this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
@@ -327,11 +343,10 @@
         //   });
         // }
 
-        if (changed) {
-          this._fire('resize', track);
-          this.top = top;
-          this.left = left;
-        }
+        this._fire('resize', track);
+        this.top = top;
+        this.left = left;
+
       }
 
       _onDrag(e, track) {
@@ -376,16 +391,21 @@
         }
       }
 
-      _sidesToTranslate(element) {
-        let top = element.offsetParent.offsetTop;
-        let left = element.offsetParent.offsetLeft;
-        element.style.height = (element.offsetHeight + 2) + 'px';
-        element.style.width = (element.offsetWidth + 2) + 'px';
+      _sidesToTranslate(el, dx, dy) {
+        // Fix for half pixel when touching
+        dx = Math.round(dx || 0);
+        dy = Math.round(dy || 0);
+        let top = el.offsetParent.offsetTop;
+        let left = el.offsetParent.offsetLeft;
+        let topDiff = top - el.offsetTop;
+        let leftDiff = left - el.offsetLeft;
+        el.style.height = (el.offsetHeight + 2) + 'px';
+        el.style.width = (el.offsetWidth + 2) + 'px';
         return {
-          top: element.offsetParent.offsetTop == top,
-          left: element.offsetParent.offsetLeft == left,
-          bottom: element.offsetParent.offsetTop == top - 2,
-          right: element.offsetParent.offsetLeft == left - 2,
+          top: el.offsetParent.offsetTop == top,
+          left: el.offsetParent.offsetLeft == left,
+          bottom: el.offsetParent.offsetTop == top - 2,
+          right: el.offsetParent.offsetLeft == left - 2,
         };
       }
 

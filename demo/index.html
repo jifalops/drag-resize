@@ -54,8 +54,9 @@
           <input id="resize" value="top bottom left right"/> Resize<br/>
           <input id="edge" value="1px dashed #333"/> Edge border<br/>
           <input id="corner" value="1px solid #333"/> Corner border<br/>
-          <input id="color" value="#666"/> Corner color<br/>
+          <input id="color" value="#00f"/> Corner color<br/>
           <input id="handle" value="8px"/> Resize handle height/width<br/>
+          <label><input id="constrain" type="checkbox" /> Constrain</label><br/>
           <button onclick="reset()">Reset size/pos</button> &nbsp;
           <button onclick="update()">Update</button>
           <script>
@@ -66,9 +67,12 @@
             var corner = document.getElementById('corner');
             var color = document.getElementById('color');
             var handle = document.getElementById('handle');
+            var constrain = document.getElementById('constrain');
+            setTimeout(update, 100);
             function update() {
               dynamic.drag = drag.value;
               dynamic.resize = resize.value;
+              dynamic.constrain = constrain.checked;
               dynamic.updateStyles({
                 '--drag-resize-edge-border': edge.value,
                 '--drag-resize-corner-border': corner.value,
