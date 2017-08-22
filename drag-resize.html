@@ -241,7 +241,7 @@
         this.resizeTopRight = this.resizeTop && this.resizeRight;
         this.resizeBottomLeft = this.resizeBottom && this.resizeLeft;
         this.resizeBottomRight = this.resizeBottom && this.resizeRight;
-        this._setProperty('resizable', this.resizeTop || this.resizeBottom
+        this._setResizable(this.resizeTop || this.resizeBottom
           || this.resizeLeft || this.resizeRight);
       },
 
@@ -251,7 +251,7 @@
         this.dragDown = drag.includes('down');
         this.dragLeft = drag.includes('left');
         this.dragRight = drag.includes('right');
-        this._setProperty('draggable', this.dragUp || this.dragDown
+        this._setDraggable(this.dragUp || this.dragDown
           || this.dragLeft || this.dragRight);
       },
 
