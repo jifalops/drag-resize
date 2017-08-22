@@ -1,8 +1,5 @@
-<link rel="import" href="../polymer/polymer-element.html">
-<link rel="import" href="../polymer/lib/mixins/gesture-event-listeners.html">
-<link rel="import" href="../polymer/lib/utils/flattened-nodes-observer.html">
+<link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
-<link rel="import" href="../shadycss/apply-shim.html">
 <!--
   CSS custom property | Description | Default
   ------------------- | ----------- | -------
@@ -164,72 +161,67 @@
      * @polymer
      * @demo demo/index.html
      */
-    class DragResize extends Polymer.GestureEventListeners(Polymer.Element) {
-      static get is() { return 'drag-resize'; }
-      static get properties() {
-        return {
-          /**
-           * Which directions the container can be dragged.
-           * Any combination of `up`, `down`, `left`, or `right`; or `none`.
-           */
-          drag: {
-            type: String,
-            value: 'up down left right',
-            observer: '_dragChanged',
-            reflectToAttribute: true
-          },
-          /**
-           * Which edges allow resize.
-           * Any combination of `top`, `bottom`, `left`, or `right`; or `none`.
-           * A corner is enabled when both of its adjacent sides are enabled.
-           */
-          resize: {
-            type: String,
-            value: 'top bottom left right',
-            observer: '_resizeChanged',
-            reflectToAttribute: true
-          },
+    Polymer({
+      is: 'drag-resize',
+      properties: {
+        /**
+          * Which directions the container can be dragged.
+          * Any combination of `up`, `down`, `left`, or `right`; or `none`.
+          */
+        drag: {
+          type: String,
+          value: 'up down left right',
+          observer: '_dragChanged',
+          reflectToAttribute: true
+        },
+        /**
+          * Which edges allow resize.
+          * Any combination of `top`, `bottom`, `left`, or `right`; or `none`.
+          * A corner is enabled when both of its adjacent sides are enabled.
+          */
+        resize: {
+          type: String,
+          value: 'top bottom left right',
+          observer: '_resizeChanged',
+          reflectToAttribute: true
+        },
 
-          /**
-           * True if draggable in at least one direction.
-           */
-          draggable: {
-            type: Boolean,
-            value: false,
-            readOnly: true,
-            reflectToAttribute: true
-          },
-          /**
-           * True if resizable on at least one edge.
-           */
-          resizable: {
-            type: Boolean,
-            value: false,
-            readOnly: true,
-            reflectToAttribute: true
-          },
-        };
-      }
+        /**
+          * True if draggable in at least one direction.
+          */
+        draggable: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          reflectToAttribute: true
+        },
+        /**
+          * True if resizable on at least one edge.
+          */
+        resizable: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          reflectToAttribute: true
+        },
+      },
 
-      connectedCallback() {
-        super.connectedCallback();
+      attached: function() {
         let slot = this.shadowRoot.querySelector('slot');
-        this._observer = new Polymer.FlattenedNodesObserver(slot,
+        this._observer = Polymer.dom(slot).observeNodes(
           info => {
-            this.box = slot.assignedNodes({flatten:true})
-              .filter(n => n.nodeType === Node.ELEMENT_NODE)[0];
+            this.box = this.getContentChildren()[0];
             this.initialTop = this.box.offsetTop;
             this.initialLeft = this.box.offsetLeft;
             this.initialHeight = this.box.offsetHeight;
             this.initialWidth = this.box.offsetWidth;
           });
-      }
-      disconnectedCallback() {
-        super.disconnectedCallback();
+      },
+      detached: function() {
         this._observer.disconnect();
-      }
+      },
 
-      reset() {
+      reset: function() {
         if (!this.box) return;
         this.box.offsetParent.style.transform =
           `translate(${this.initialLeft}px, ${this.initialTop}px)`;
@@ -237,9 +229,9 @@
         this.box.style.width = this.initialWidth + 'px';
         this.top = this.initialTop;
         this.left = this.initialLeft;
-      }
+      },
 
-      _resizeChanged(edges) {
+      _resizeChanged: function(edges) {
         if (typeof edges != 'string') return;
         this.resizeTop = edges.includes('top');
         this.resizeBottom = edges.includes('bottom');
@@ -251,9 +243,9 @@
         this.resizeBottomRight = this.resizeBottom && this.resizeRight;
         this._setProperty('resizable', this.resizeTop || this.resizeBottom
           || this.resizeLeft || this.resizeRight);
-      }
+      },
 
-      _dragChanged(drag) {
+      _dragChanged: function(drag) {
         if (typeof drag != 'string') return;
         this.dragUp = drag.includes('up');
         this.dragDown = drag.includes('down');
@@ -261,9 +253,9 @@
         this.dragRight = drag.includes('right');
         this._setProperty('draggable', this.dragUp || this.dragDown
           || this.dragLeft || this.dragRight);
-      }
+      },
 
-      _onResize(e, track) {
+      _onResize: function(e, track) {
         if (!this.resizable) return;
 
         // Stop from dragging as well.
@@ -328,13 +320,13 @@
         // }
 
         if (changed) {
-          this._fire('resize', track);
+          this.fire('resize', track);
           this.top = top;
           this.left = left;
         }
-      }
+      },
 
-      _onDrag(e, track) {
+      _onDrag: function(e, track) {
         if (!this.draggable) return;
 
         const dx = track.dx || 0;
@@ -370,13 +362,13 @@
 
         // console.log(top, left, dx, dy)
         if (changed) {
-          this._fire('drag', track);
+          this.fire('drag', track);
           this.top = top;
           this.left = left;
         }
-      }
+      },
 
-      _sidesToTranslate(element) {
+      _sidesToTranslate: function(element) {
         let top = element.offsetParent.offsetTop;
         let left = element.offsetParent.offsetLeft;
         element.style.height = (element.offsetHeight + 2) + 'px';
@@ -387,15 +379,7 @@
           bottom: element.offsetParent.offsetTop == top - 2,
           right: element.offsetParent.offsetLeft == left - 2,
         };
-      }
-
-      /** Copy the Polymer 1.x fire implementation. */
-      _fire(name, data, options = {}) {
-        options.detail = data;
-        if (options.bubbles === undefined) options.bubbles = true;
-        if (options.composed === undefined) options.composed = true;
-        this.dispatchEvent(new CustomEvent(name, options));
-      }
+      },
 
       /**
        * Triggered when the element is resized.
@@ -408,8 +392,6 @@
        * @event drag
        * @param {track} object The on-track event detail.
        */
-    }
-
-    window.customElements.define(DragResize.is, DragResize);
+    });
   </script>
 </dom-module>
