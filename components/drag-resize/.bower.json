@@ -1,0 +1,36 @@
+{
+  "name": "drag-resize",
+  "description": "A touch friendly draggable and/or resizable container.",
+  "main": "drag-resize.html",
+  "authors": [
+    "Jacob Phillips (https://github.com/jifalops) <jifalops@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "drag",
+    "resize",
+    "sensor",
+    "touch"
+  ],
+  "dependencies": {
+    "polymer": "#^2.0.0",
+    "iron-flex-layout": "#^2.0.0"
+  },
+  "devDependencies": {
+    "iron-demo-helpers": "#^2.0.0",
+    "iron-component-page": "#^2.0.0",
+    "web-component-tester": "#^6.0.0",
+    "webcomponentsjs": "#^1.0.0"
+  },
+  "homepage": "https://github.com/jifalops/drag-resize",
+  "_release": "4901e3eaa8",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "4901e3eaa8ae8bf47eb3b9997c5aee4972faa603"
+  },
+  "_source": "https://github.com/jifalops/drag-resize.git",
+  "_target": "master",
+  "_originalSource": "jifalops/drag-resize",
+  "_direct": true
+}

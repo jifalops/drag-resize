@@ -1,0 +1,414 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<!--
+  CSS custom property | Description | Default
+  ------------------- | ----------- | -------
+  `--drag-resize-handle-size` | draggable edge/corner size | 8px;
+  `--drag-resize-corner-color` | color for resizable corner | '';
+  `--drag-resize-edge-padding` | padding for resizable edges | '';
+  `--drag-resize-edge-border` | border for resizable edges | '';
+  `--drag-resize-corner-border` | border for resizable corners | '';
+  `--drag-resize-container` | Mixin applied to resize container | {};
+  `--drag-resize-move-cursor` | move cursor | move;
+  `--drag-resize-top-cursor` | top cursor | ns-resize;
+  `--drag-resize-bottom-cursor` | bottom cursor | ns-resize;
+  `--drag-resize-left-cursor` | left cursor | ew-resize;
+  `--drag-resize-right-cursor` | right cursor | ew-resize;
+  `--drag-resize-top-left-cursor` | top-left cursor | nw-resize;
+  `--drag-resize-top-right-cursor` | top-right cursor | ne-resize;
+  `--drag-resize-bottom-left-cursor` | bottom-left cursor | sw-resize;
+  `--drag-resize-bottom-right-cursor` | bottom-right cursor | se-resize;
+-->
+<dom-module id="drag-resize">
+  <template strip-whitespace>
+    <style>
+      :host {
+        display: inline-block;
+        --drag-resize-handle-size: 8px;
+        --drag-resize-move-cursor: move;
+        --drag-resize-top-cursor: ns-resize;
+        --drag-resize-bottom-cursor: ns-resize;
+        --drag-resize-left-cursor: ew-resize;
+        --drag-resize-right-cursor: ew-resize;
+        --drag-resize-top-left-cursor: nw-resize;
+        --drag-resize-top-right-cursor: ne-resize;
+        --drag-resize-bottom-left-cursor: sw-resize;
+        --drag-resize-bottom-right-cursor: se-resize;
+      }
+
+      :host([resize~=top]) #container {
+        padding-top: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=bottom]) #container {
+        padding-bottom: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=left]) #container {
+        padding-left: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=right]) #container {
+        padding-right: var(--drag-resize-edge-padding);
+      }
+
+      :host([draggable]) #overlay {
+        cursor: var(--drag-resize-move-cursor);
+      }
+      #container {
+        position: relative;
+        box-sizing: border-box;
+        @apply --drag-resize-container;
+      }
+      #container div {
+        position: absolute;
+      }
+      #overlay {
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+      }
+
+      .top.edge, .bottom.edge {
+        height: var(--drag-resize-handle-size);
+        left: 0;
+        right: 0;
+      }
+      .left.edge, .right.edge {
+        width: var(--drag-resize-handle-size);
+        top: 0;
+        bottom: 0;
+      }
+
+      .corner {
+        width: calc(var(--drag-resize-handle-size) * 2);
+        height: calc(var(--drag-resize-handle-size) * 2);
+      }
+
+      .top.edge {
+        top: 0;
+        border-top: var(--drag-resize-edge-border);
+        cursor: var(--drag-resize-top-cursor);
+      }
+      .bottom.edge {
+        bottom: 0;
+        border-bottom: var(--drag-resize-edge-border);
+        cursor: var(--drag-resize-bottom-cursor);
+      }
+      .left.edge {
+        left: 0;
+        border-left: var(--drag-resize-edge-border);
+        cursor: var(--drag-resize-left-cursor);
+      }
+      .right.edge {
+        right: 0;
+        border-right: var(--drag-resize-edge-border);
+        cursor: var(--drag-resize-right-cursor);
+      }
+
+
+      .top.corner {
+        top: calc(var(--drag-resize-handle-size) / -2);
+        border-top: var(--drag-resize-corner-border);
+      }
+      .bottom.corner {
+        bottom: calc(var(--drag-resize-handle-size) / -2);
+        border-bottom: var(--drag-resize-corner-border);
+      }
+      .left.corner {
+        left: calc(var(--drag-resize-handle-size) / -2);
+        border-left: var(--drag-resize-corner-border);
+      }
+      .right.corner {
+        right: calc(var(--drag-resize-handle-size) / -2);
+        border-right: var(--drag-resize-corner-border);
+      }
+
+      .top.left {
+        cursor: var(--drag-resize-top-left-cursor);
+        background-image: linear-gradient(to top left, rgba(0,0,0,0) 75%,
+          var(--drag-resize-corner-color, rgba(0,0,0,0)));
+      }
+      .top.right {
+        cursor: var(--drag-resize-top-right-cursor);
+        background-image: linear-gradient(to top right, rgba(0,0,0,0) 75%,
+          var(--drag-resize-corner-color, rgba(0,0,0,0)));
+      }
+      .bottom.left {
+        cursor: var(--drag-resize-bottom-left-cursor);
+        background-image: linear-gradient(to bottom left, rgba(0,0,0,0) 75%,
+          var(--drag-resize-corner-color, rgba(0,0,0,0)));
+      }
+      .bottom.right {
+        cursor: var(--drag-resize-bottom-right-cursor);
+        background-image: linear-gradient(to bottom right, rgba(0,0,0,0) 75%,
+          var(--drag-resize-corner-color, rgba(0,0,0,0)));
+      }
+    </style>
+    <div id="container">
+      <slot id="slot"></slot>
+      <div id="overlay" draggable on-track="_onDrag">
+        <div draggable class="top edge" hidden$="[[!resizeTop]]"
+          on-track="_onResize"></div>
+        <div draggable class="right edge" hidden$="[[!resizeRight]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom edge" hidden$="[[!resizeBottom]]"
+          on-track="_onResize"></div>
+        <div draggable class="left edge" hidden$="[[!resizeLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="top left corner" hidden$="[[!resizeTopLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="top right corner" hidden$="[[!resizeTopRight]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom left corner" hidden$="[[!resizeBottomLeft]]"
+          on-track="_onResize"></div>
+        <div draggable class="bottom right corner" hidden$="[[!resizeBottomRight]]"
+          on-track="_onResize"></div>
+      </div>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `drag-resize`
+     * A touch friendly draggable and/or resizable container.
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    Polymer({
+      is: 'drag-resize',
+      properties: {
+        /**
+          * Which directions the container can be dragged.
+          * Any combination of `up`, `down`, `left`, or `right`; or `none`.
+          */
+        drag: {
+          type: String,
+          value: 'up down left right',
+          observer: '_dragChanged',
+          reflectToAttribute: true
+        },
+        /**
+          * Which edges allow resize.
+          * Any combination of `top`, `bottom`, `left`, or `right`; or `none`.
+          * A corner is enabled when both of its adjacent sides are enabled.
+          */
+        resize: {
+          type: String,
+          value: 'top bottom left right',
+          observer: '_resizeChanged',
+          reflectToAttribute: true
+        },
+
+        /**
+          * True if draggable in at least one direction.
+          */
+        draggable: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          reflectToAttribute: true
+        },
+        /**
+          * True if resizable on at least one edge.
+          */
+        resizable: {
+          type: Boolean,
+          value: false,
+          readOnly: true,
+          reflectToAttribute: true
+        },
+      },
+
+      attached: function() {
+        this._observer = Polymer.dom(this.$.slot).observeNodes(
+          info => {
+            this.box = this.getContentChildren()[0];
+            this.initialTop = this.box.offsetTop;
+            this.initialLeft = this.box.offsetLeft;
+            this.initialHeight = this.box.offsetHeight;
+            this.initialWidth = this.box.offsetWidth;
+          });
+      },
+      detached: function() {
+        this._observer.disconnect();
+      },
+
+      reset: function() {
+        if (!this.box) return;
+        this.box.offsetParent.style.transform =
+          `translate(${this.initialLeft}px, ${this.initialTop}px)`;
+        this.box.style.height = this.initialHeight + 'px';
+        this.box.style.width = this.initialWidth + 'px';
+        this.top = this.initialTop;
+        this.left = this.initialLeft;
+      },
+
+      _resizeChanged: function(edges) {
+        if (typeof edges != 'string') return;
+        this.resizeTop = edges.includes('top');
+        this.resizeBottom = edges.includes('bottom');
+        this.resizeLeft = edges.includes('left');
+        this.resizeRight = edges.includes('right');
+        this.resizeTopLeft = this.resizeTop && this.resizeLeft;
+        this.resizeTopRight = this.resizeTop && this.resizeRight;
+        this.resizeBottomLeft = this.resizeBottom && this.resizeLeft;
+        this.resizeBottomRight = this.resizeBottom && this.resizeRight;
+        this._setResizable(this.resizeTop || this.resizeBottom
+          || this.resizeLeft || this.resizeRight);
+      },
+
+      _dragChanged: function(drag) {
+        if (typeof drag != 'string') return;
+        this.dragUp = drag.includes('up');
+        this.dragDown = drag.includes('down');
+        this.dragLeft = drag.includes('left');
+        this.dragRight = drag.includes('right');
+        this._setDraggable(this.dragUp || this.dragDown
+          || this.dragLeft || this.dragRight);
+      },
+
+      _onResize: function(e, track) {
+        if (!this.resizable) return;
+
+        // Stop from dragging as well.
+        e.stopPropagation();
+
+        // Fix for half-pixel ddx/y when touching.
+        const dx = Math.round(track.ddx || 0);
+        const dy = Math.round(track.ddy || 0);
+
+        // if (track.state == 'start') {
+          // console.log('resizing', e.target.id, this.box);
+        // }
+
+        // Remember top-left point between runs.
+        if (this.top === undefined) this.top = this.box.offsetTop || 0;
+        if (this.left === undefined) this.left = this.box.offsetLeft || 0;
+
+        // Values to change
+        let top = this.top;
+        let left = this.left;
+        let height = this.box.offsetHeight;
+        let width = this.box.offsetWidth;
+        let changed = false;
+
+        // If this line is moved to the top, resizing fails.
+        const translate = this._sidesToTranslate(this.box);
+
+        if (e.target.classList.contains('top')) {
+          height += -dy;
+          if (height < 0) height = 0;
+          else if (translate.top) top += dy;
+          changed = true;
+        } else if (e.target.classList.contains('bottom')) {
+          height += dy;
+          if (height < 0) height = 0;
+          else if (translate.bottom) top += -dy;
+          changed = true;
+        }
+
+        if (e.target.classList.contains('left')) {
+          width += -dx;
+          if (width < 0) width = 0;
+          else if (translate.left) left += dx;
+          changed = true;
+        } else if (e.target.classList.contains('right')) {
+          width += dx;
+          if (width < 0) width = 0;
+          else if (translate.right) left += dx;
+          changed = true;
+        }
+
+        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
+        this.box.style.height = height + 'px';
+        this.box.style.width = width + 'px';
+
+        // if (track.state == 'end') {
+        //   console.log(e.target.id, 'moved', track, {
+        //     transform: this.box.offsetParent.style.transform,
+        //     height: this.box.style.height,
+        //     width: this.box.style.width,
+        //   });
+        // }
+
+        if (changed) {
+          this.fire('resize', track);
+          this.top = top;
+          this.left = left;
+        }
+
+        if (track.state == 'end') {
+          e.target.blur();
+        }
+      },
+
+      _onDrag: function(e, track) {
+        if (!this.draggable) return;
+
+        const dx = track.dx || 0;
+        const dy = track.dy || 0;
+
+        // Remember top-left point between runs.
+        if (this.top === undefined) this.top = this.box.offsetTop || 0;
+        if (this.left === undefined) this.left = this.box.offsetLeft || 0;
+
+        if (track.state == 'start') {
+          // console.log('dragging...');
+          this._dragStartTop = this.top;
+          this._dragStartLeft = this.left;
+        }
+
+
+
+        // Values to change
+        let top = this._dragStartTop;
+        let left = this._dragStartLeft;
+        let changed = false;
+
+        if ((this.dragUp && dy <= 0) || this.dragDown && dy >= 0) {
+          top += dy;
+          changed = true;
+        }
+        if ((this.dragLeft && dx <= 0) || this.dragRight && dx >= 0) {
+          left += dx;
+          changed = true;
+        }
+
+        this.box.offsetParent.style.transform = `translate(${left}px, ${top}px)`;
+
+        // console.log(top, left, dx, dy)
+        if (changed) {
+          this.fire('drag', track);
+          this.top = top;
+          this.left = left;
+        }
+      },
+
+      _sidesToTranslate: function(element) {
+        let top = element.offsetParent.offsetTop;
+        let left = element.offsetParent.offsetLeft;
+        element.style.height = (element.offsetHeight + 2) + 'px';
+        element.style.width = (element.offsetWidth + 2) + 'px';
+        return {
+          top: element.offsetParent.offsetTop == top,
+          left: element.offsetParent.offsetLeft == left,
+          bottom: element.offsetParent.offsetTop == top - 2,
+          right: element.offsetParent.offsetLeft == left - 2,
+        };
+      },
+
+      /**
+       * Triggered when the element is resized.
+       * @event resize
+       * @param {track} object The on-track event detail.
+       */
+
+      /**
+       * Triggered when the element is dragged.
+       * @event drag
+       * @param {track} object The on-track event detail.
+       */
+    });
+  </script>
+</dom-module>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>drag-resize demo</title>
+
+    <script src="../../webcomponentsjs/webcomponents-lite.js"></script>
+
+    <link rel="import" href="../../iron-demo-helpers/demo-pages-shared-styles.html">
+    <link rel="import" href="../../iron-demo-helpers/demo-snippet.html">
+    <link rel="import" href="../../iron-flex-layout/iron-flex-layout.html">
+    <link rel="import" href="../drag-resize.html">
+
+    <custom-style>
+      <style is="custom-style" include="demo-pages-shared-styles">
+        drag-resize.border {
+          --drag-resize-edge-border: 1px dashed #333;
+          --drag-resize-corner-border: 1px solid #333;
+        }
+        drag-resize.corner {
+          --drag-resize-corner-color: #444;
+        }
+        .content {
+          height: 100px;
+          width: 100px;
+          background-color: lightblue;
+        }
+        .container {
+          height: 200px;
+          width: 200px;
+          background-color: #ddd;
+          @apply --layout-vertical;
+          @apply --layout-center;
+        }
+        .container drag-resize {
+          @apply --layout-flex;
+          @apply --layout-horizontal;
+          @apply --layout-center;
+        }
+      </style>
+    </custom-style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <h3>Interactive</h3>
+      <demo-snippet>
+        <template>
+          <drag-resize id="dynamic">
+            <div class="content"></div>
+          </drag-resize><br/>
+          <input id="drag" value="up down left right"/> Drag<br/>
+          <input id="resize" value="top bottom left right"/> Resize<br/>
+          <input id="edge" value="1px dashed #333"/> Edge border<br/>
+          <input id="corner" value="1px solid #333"/> Corner border<br/>
+          <input id="color" value="#f00"/> Corner color<br/>
+          <input id="handle" value="8px"/> Resize handle height/width<br/>
+          <button onclick="reset()">Reset size/pos</button> &nbsp;
+          <!--<button onclick="update()">Update</button>-->
+          <script>
+            var dynamic = document.getElementById('dynamic');
+            var drag = document.getElementById('drag');
+            var resize = document.getElementById('resize');
+            var edge = document.getElementById('edge');
+            var corner = document.getElementById('corner');
+            var color = document.getElementById('color');
+            var handle = document.getElementById('handle');
+            function update() {
+              dynamic.drag = drag.value;
+              dynamic.resize = resize.value;
+              dynamic.updateStyles({
+                '--drag-resize-edge-border': edge.value,
+                '--drag-resize-corner-border': corner.value,
+                '--drag-resize-corner-color': color.value,
+                '--drag-resize-handle-size': handle.value,
+              });
+            }
+            function reset() {
+              dynamic.reset();
+            }
+            setInterval(update, 1000);
+          </script>
+        </template>
+      </demo-snippet>
+      <h3>Draggable and resizable, with borders</h3>
+      <demo-snippet>
+        <template>
+          <drag-resize class="border">
+            <div class="content"></div>
+          </drag-resize>
+        </template>
+      </demo-snippet>
+      <h3>Resize only, with corner color, in a right-aligned div.</h3>
+      <demo-snippet>
+        <template>
+          <div style="text-align: right">
+            <drag-resize class="corner" drag="none"><div class="content"></div></drag-resize>
+          </div>
+        </template>
+      </demo-snippet>
+      <h3>Centered in a flexbox, only some edges resizable.</h3>
+      <demo-snippet>
+        <template>
+          <div class="container">
+            <drag-resize class="corner" resize="bottom right" drag="none">
+              <div class="content"></div>
+            </drag-resize>
+          </div>
+        </template>
+      </demo-snippet>
+      <h3>Position absolute</h3>
+      <demo-snippet>
+        <template>
+          <drag-resize style="position:absolute" class="border">
+            <div class="content"></div>
+          </drag-resize>
+        </template>
+      </demo-snippet>
+      <h3>Limited dragging</h3>
+      <demo-snippet>
+        <template>
+          <drag-resize drag="left right" resize="none">
+            <div class="content"></div>
+          </drag-resize>
+          <div style="text-align:right">
+            <drag-resize drag="up down" resize="none">
+              <div class="content" style="border:1px solid"></div>
+            </drag-resize>
+          </div>
+        </template>
+      </demo-snippet>
+    </div>
+  </body>
+</html>
