@@ -5,6 +5,7 @@
   ------------------- | ----------- | -------
   `--drag-resize-handle-size` | draggable edge/corner size | 8px;
   `--drag-resize-corner-color` | color for resizable corner | '';
+  `--drag-resize-edge-padding` | padding for resizable edges | '';
   `--drag-resize-edge-border` | border for resizable edges | '';
   `--drag-resize-corner-border` | border for resizable corners | '';
   `--drag-resize-container` | Mixin applied to resize container | {};
@@ -33,6 +34,19 @@
         --drag-resize-top-right-cursor: ne-resize;
         --drag-resize-bottom-left-cursor: sw-resize;
         --drag-resize-bottom-right-cursor: se-resize;
+      }
+
+      :host([resize~=top]) #container {
+        padding-top: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=bottom]) #container {
+        padding-bottom: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=left]) #container {
+        padding-left: var(--drag-resize-edge-padding);
+      }
+      :host([resize~=right]) #container {
+        padding-right: var(--drag-resize-edge-padding);
       }
 
       :host([draggable]) #overlay {
@@ -322,6 +336,10 @@
           this.fire('resize', track);
           this.top = top;
           this.left = left;
+        }
+
+        if (track.state == 'end') {
+          e.target.blur();
         }
       },
 
