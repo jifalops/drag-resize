@@ -130,7 +130,7 @@
       }
     </style>
     <div id="container">
-      <slot></slot>
+      <slot id="slot"></slot>
       <div id="overlay" draggable on-track="_onDrag">
         <div draggable class="top edge" hidden$="[[!resizeTop]]"
           on-track="_onResize"></div>
@@ -207,8 +207,7 @@
       },
 
       attached: function() {
-        let slot = this.shadowRoot.querySelector('slot');
-        this._observer = Polymer.dom(slot).observeNodes(
+        this._observer = Polymer.dom(this.$.slot).observeNodes(
           info => {
             this.box = this.getContentChildren()[0];
             this.initialTop = this.box.offsetTop;
