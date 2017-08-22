@@ -14,7 +14,8 @@
   ],
   "dependencies": {
     "polymer": "#^2.0.0",
-    "iron-flex-layout": "#^2.0.0"
+    "iron-flex-layout": "#^2.0.0",
+    "shadycss": "#^1.0.0"
   },
   "devDependencies": {
     "iron-demo-helpers": "#^2.0.0",
