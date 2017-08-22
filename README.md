@@ -7,6 +7,7 @@ A touch friendly draggable and/or resizable container.
 
 ```
 bower i -S jifalops/drag-resize        # Polymer 2.0 class based
+bower i -S jifalops/drag-resize#^0.2.0 # Polymer 2.0 hybrid (1.x compatible)
 ```
 
 ## Usage
